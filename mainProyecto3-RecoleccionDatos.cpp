@@ -1,31 +1,24 @@
 // Universidad del Valle de Guatemala
 // Programacion de Microprocesadores
-// Main-Proyecto 3
-// Andrea Elias 17048
-// Kevin Macario 17369
-// David Soto 17551
+// Mario Sarmientos
+// Fernando Hengstenberg	17699
 
-// Basado en el codigo de:
-// Christian Medina
-
-// compile with:
-// g++ mainProyecto3-RecoleccionDatos.cpp bme280.cpp bme280.h -lwiringPi -o Proyecto3-Recoleccion
-
-//Se indican las librerias necesarias para el programa
+//llamamos las librerias a utilizar
 #include <iostream>
-#include <stdio.h>
-#include <errno.h>
-#include <stdint.h>
-#include <time.h>
-#include <math.h>
-#include <wiringPiI2C.h>
-#include "bme280.h"
-#include <ctime>
 #include <fstream>
-#include <vector>
+#include <stdio.h>
+#include <ctime>
+#include <math.h>
+#include "bme280.h"
+#include <errno.h>
 #include <sstream>
+#include <stdint.h>
+#include <wiringPiI2C.h>
+#include <time.h>
 #include <string>
-#define VUELTAS 28800 // 28800 tomas de mediciones equivale a 1 dia de mediciones con 3 segundos de intervalo entre cada una
+#include <vector
+//17280 mediciones por dia cada 5 segundos
+#define VUELTAS 17280 
 
 using namespace std;
 
@@ -36,7 +29,7 @@ int main(int argv, char* argc[]){
   int fd = wiringPiI2CSetup(BME280_ADDRESS);
 
   //Se realiza la apertura del archivo
-  ofstream Archivo("181113.csv");
+  ofstream Fille("181124.csv");
 
   //Se verifica que el sensor este conectado
   if(fd < 0){
@@ -48,9 +41,8 @@ int main(int argv, char* argc[]){
   bme280_calib_data cal;
   readCalibrationData(fd, &cal);
 
-  wiringPiI2CWriteReg8(fd, 0xf2, 0x01);   // humidity oversampling x 1
-  wiringPiI2CWriteReg8(fd, 0xf4, 0x25);   // pressure and temperature oversampling x 1, mode normal
-
+  wiringPiI2CWriteReg8(fd, 0xf2, 0x01);   
+  wiringPiI2CWriteReg8(fd, 0xf4, 0x25);  
   //Se obtienen los datos medidos por el sensor
   bme280_raw_data raw;
   getRawData(fd, &raw);
@@ -59,8 +51,9 @@ int main(int argv, char* argc[]){
   int32_t t_fine = getTemperatureCalibration(&cal, raw.temperature);
 
   //Se abre el archivo
-  if(Archivo.is_open()){
-    ////Archivo << "TIEMPO,TEMPERATURA,HUMEDAD,PRESION\n";	
+  if(Fille.is_open()){
+    
+	Fille << "TIEMPO,TEMPERATURA,HUMEDAD,PRESION\n";	
   } else {
 	
      cout << "ERROR: No se puedo realizar la apertura del archivo";
@@ -90,12 +83,16 @@ int main(int argv, char* argc[]){
 	 //Se obtienen datos nuevamente
      getRawData(fd, &raw);
      t_fine = getTemperatureCalibration(&cal, raw.temperature);
-
+     
 	 //Se ingresan los datos obtenidos en nuevas variables
-     float t = compensateTemperature(t_fine); // C
-     float p = compensatePressure(raw.pressure, &cal, t_fine) / 100; // hPa
-     float h = compensateHumidity(raw.humidity, &cal, t_fine);       // %
-     float a = getAltitude(p);                         // meters
+     float temperatura = compensateTemperature(t_fine); // C
+     
+	 float humedad = compensateHumidity(raw.humidity, &cal, t_fine);       // %
+     
+	 float altura = getAltitude(p);
+	 
+	 float presion = compensatePressure(raw.pressure, &cal, t_fine) / 100; // hPa
+                             // meters
      
      // Se imprime la hora segun el reloj de la raspberry
      cout << tiempo << endl;
@@ -103,39 +100,39 @@ int main(int argv, char* argc[]){
      // output data to screen
      printf("{\"sensor\":\"bme280\", \"humidity\":%.2f, \"pressure\":%.2f,"
      " \"temperature\":%.2f, \"altitude\":%.2f, \"timestamp\":%d}\n",
-     h, p, t, a, (int)time(NULL));
+     humedad, presion, temperatura, altitud, (int)time(NULL));
 
      // Se escriben los datos en el documento
-     Archivo << tiempo << ";" << t << ";" << h << ";" << p << ";" << endl;
+     Fille << tiempo << " | " << presion << " | " << humedad << " | " << temperatura << " | " << endl;
 	
      // Lectura de tiempo esperar 3 segundos
      double time = 0;  
-     unsigned t0,t1;
+     unsigned tiempoF,tiempoO;
 
-     t0=clock();	  
+     tiempoF=clock();	  
 	  
      do{  
-  	t1=clock();
-  	time = (double(t1-t0)/CLOCKS_PER_SEC); 
+  	tiempoO=clock();
+  	time = (double(tiempoO-tiempoF)/CLOCKS_PER_SEC); 
         }
 	  
 	while (int(time)<3);
 	  
 	}
   //Se cierra el archivo 1
-  Archivo.close();
+  Fille.close();
 
   //Segundo dia de lectura
   //Se abre el archivo de escritura para el dia 2
-  ofstream Archivo2("181114.csv");
+  ofstream FilleT("181117.csv");
 
   //Se comprueba que este abierto el archivo
-  if (Archivo2.is_open()) {
-	  ////Archivo << "TIEMPO,TEMPERATURA,HUMEDAD,PRESION\n";	
+  if (FilleT.is_open()) {
+	  FilleT << "T |Temp | H |P\n";	
   }
   else {
 
-	  cout << "ERROR: No se puedo realizar la apertura del archivo";
+	  cout << "file couldnt be opened";
 	  return 0;
   }
 
@@ -164,7 +161,7 @@ int main(int argv, char* argc[]){
 	  t_fine = getTemperatureCalibration(&cal, raw.temperature);
 
 	  //Se crean las variables para recibir los datos
-	  float t = compensateTemperature(t_fine); // C
+	  float temperatura= compensateTemperature(t_fine); // C
 	  float p = compensatePressure(raw.pressure, &cal, t_fine) / 100; // hPa
 	  float h = compensateHumidity(raw.humidity, &cal, t_fine);       // %
 	  float a = getAltitude(p);                         // meters
@@ -175,26 +172,26 @@ int main(int argv, char* argc[]){
 	  // output data to screen
 	  printf("{\"sensor\":\"bme280\", \"humidity\":%.2f, \"pressure\":%.2f,"
 		  " \"temperature\":%.2f, \"altitude\":%.2f, \"timestamp\":%d}\n",
-		  h, p, t, a, (int)time(NULL));
+		  humedad, presion, temperatura, a, (int)time(NULL));
 
 	  // Se escriben los datos en el documento
-	  Archivo2 << tiempo << ";" << t << ";" << h << ";" << p << ";" << endl;
+	  FilleT << tiempo << ";" << temperatura<< ";" << h << ";" << p << ";" << endl;
 
 	  // Lectura de tiempo esperar 3 segundos
 	  double time = 0;
-	  unsigned t0, t1;
+	  unsigned tiempoF, tiempoO;
 
-	  t0 = clock();
+	  tiempoF = clock();
 
 	  do {
-		  t1 = clock();
-		  time = (double(t1 - t0) / CLOCKS_PER_SEC);
+		  tiempoO = clock();
+		  time = (double(tiempoO - tiempoF) / CLOCKS_PER_SEC);
 	  }
 
 	  while (int(time) < 3);
 
   }
   //Se cierra el archivo 2
-  Archivo2.close();
+  FilleT.close();
   return 0;
 }

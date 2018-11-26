@@ -1,22 +1,10 @@
-/*----------
-* Proyecto 3 - Predicciones CUDA
-* Andrea Estefania Elias Cobar 17048
-* Kevin Sebastian Macario 17369
-* David Uriel Soto Alvarez 17551
-* ----------
-* Universidad del Valle
-* Programación de Microprocesadores
-* Semestre 4, 2018
-* ----------
-*/
 
-//Se incluyen las librerias necesarias
+#include <math.h>
+#include <fstream>
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-#include <math.h>
-#include <fstream>
 #include <cuda_runtime.h>
 
 //Se definen los valores fijos a utilizar en el programa
@@ -48,7 +36,7 @@ void potencia3(float *x, float *y)
   if (i < N) y[i] = pow ((double)x[i],3.0);
 }
 
-//Subrutina que calcula cual fue la media de los datos mandados por medio de un vector
+
 __global__
 void media(float* arreglo)
 {

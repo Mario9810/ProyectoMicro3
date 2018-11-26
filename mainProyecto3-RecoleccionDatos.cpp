@@ -77,8 +77,8 @@ int main(int argv, char* argc[]){
 	 //Se recalibran los datos
      readCalibrationData(fd, &cal);
 
-     wiringPiI2CWriteReg8(fd, 0xf2, 0x01);   // humidity oversampling x 1
-     wiringPiI2CWriteReg8(fd, 0xf4, 0x25);   // pressure and temperature oversampling x 1, mode normal
+     wiringPiI2CWriteReg8(fd, 0xf2, 0x01);   
+     wiringPiI2CWriteReg8(fd, 0xf4, 0x25);   
 
 	 //Se obtienen datos nuevamente
      getRawData(fd, &raw);
@@ -92,15 +92,15 @@ int main(int argv, char* argc[]){
 	 float altura = getAltitude(p);
 	 
 	 float presion = compensatePressure(raw.pressure, &cal, t_fine) / 100; // hPa
-                             // meters
+                           
      
      // Se imprime la hora segun el reloj de la raspberry
      cout << tiempo << endl;
 
-     // output data to screen
-     printf("{\"sensor\":\"bme280\", \"humidity\":%.2f, \"pressure\":%.2f,"
-     " \"temperature\":%.2f, \"altitude\":%.2f, \"timestamp\":%d}\n",
-     humedad, presion, temperatura, altitud, (int)time(NULL));
+    
+     printf("{\"sensor\":\"bme280\", \"temperatura\":%.2f, \"presion\":%.2f,"
+     " \"humedad\":%.2f, \"altitud\":%.2f, \"tiempo\":%d}\n",
+     temperatura, presion, humedad, altitud, (int)time(NULL));
 
      // Se escriben los datos en el documento
      Fille << tiempo << " | " << presion << " | " << humedad << " | " << temperatura << " | " << endl;
@@ -162,36 +162,34 @@ int main(int argv, char* argc[]){
 
 	  //Se crean las variables para recibir los datos
 	  float temperatura= compensateTemperature(t_fine); // C
-	  float p = compensatePressure(raw.pressure, &cal, t_fine) / 100; // hPa
-	  float h = compensateHumidity(raw.humidity, &cal, t_fine);       // %
-	  float a = getAltitude(p);                         // meters
+	  float presion = compensatePressure(raw.pressure, &cal, t_fine) / 100; 
+	  float humedad = compensateHumidity(raw.humidity, &cal, t_fine);      
+	  float altura = getAltitude(p);                        
 
 	  // Se imprime la hora segun el reloj de la raspberry
 	  cout << tiempo << endl;
 
 	  // output data to screen
-	  printf("{\"sensor\":\"bme280\", \"humidity\":%.2f, \"pressure\":%.2f,"
-		  " \"temperature\":%.2f, \"altitude\":%.2f, \"timestamp\":%d}\n",
-		  humedad, presion, temperatura, a, (int)time(NULL));
+	  printf("{\"sensor\":\"bme280\", \"temperatura\":%.2f, \"pressure\":%.2f,"  "\"humedad\":%.2f, \"altitude\":%.2f, \"timestamp\":%d}\n",temperatura , presion, humedad, a, (int)time(NULL));
+	 // Se escriben los datos en el documento
+	 FilleT << tiempo << " | " << presion << " | " << humedad << " | " << temperatura << " | " << endl;
 
-	  // Se escriben los datos en el documento
-	  FilleT << tiempo << ";" << temperatura<< ";" << h << ";" << p << ";" << endl;
-
-	  // Lectura de tiempo esperar 3 segundos
+	  // Lectura de tiempo esperar 5 segundos
 	  double time = 0;
 	  unsigned tiempoF, tiempoO;
 
 	  tiempoF = clock();
-
+	//DO task----------------------------------------------------------
 	  do {
 		  tiempoO = clock();
+		  //calculo de tiempo
 		  time = (double(tiempoO - tiempoF) / CLOCKS_PER_SEC);
 	  }
 
-	  while (int(time) < 3);
+	  while (int(time) < 5);
 
   }
-  //Se cierra el archivo 2
+  
   FilleT.close();
   return 0;
 }

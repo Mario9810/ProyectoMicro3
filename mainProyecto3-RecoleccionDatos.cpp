@@ -146,10 +146,10 @@ int main(int argv, char* argc[]){
 	  int min = aTime->tm_min;
 
 	  // Se crea un string con del tiempo
-	  stringstream ss;
+	  stringstream timeelapsed;
 	  ss << hour << ":" << min;
-	  string tiempo = ss.str();
-
+	  string tiempo = timeelapsed.str();
+	 //-------------------------------------------------------------------------------------------------
 	  //Se recalibran los datos
 	  readCalibrationData(fd, &cal);
 
@@ -170,7 +170,7 @@ int main(int argv, char* argc[]){
 	  cout << tiempo << endl;
 
 	  // output data to screen
-	  printf("{\"sensor\":\"bme280\", \"temperatura\":%.2f, \"pressure\":%.2f,"  "\"humedad\":%.2f, \"altitude\":%.2f, \"timestamp\":%d}\n",temperatura , presion, humedad, a, (int)time(NULL));
+	  printf("{\temperatura\":%.2f, \"presion\":%.2f,"  "\"humedad\":%.2f, \"altitude\":%.2f, \"timestamp\":%d}\n",temperatura , presion, humedad, a, (int)time(NULL));
 	 // Se escriben los datos en el documento
 	 FilleT << tiempo << " | " << presion << " | " << humedad << " | " << temperatura << " | " << endl;
 
